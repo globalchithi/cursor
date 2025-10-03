@@ -34,3 +34,41 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.pdb
+*.exe
+*.log
+.vs/
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.ncrunch*
+*.ncrunchsolution
+TestResults/
+[Tt]est[Rr]esult*
+[Bb]uild[Ll]og.*
+*.DotSettings.user
+*.pidb
+*.svclog
+*.scc
+
+# NuGet
+*.nupkg
+**/packages/*
+!**/packages/build/
+*.nuget.props
+*.nuget.targets
+
+# MSTest
+*.trx
+*.coverage
+*.coveragexml

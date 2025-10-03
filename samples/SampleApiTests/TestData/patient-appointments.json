@@ -1,0 +1,163 @@
+{
+  "patientAppointments": {
+    "validAppointment": {
+      "newPatient": {
+        "firstName": "Tammy",
+        "lastName": "RiskFree_434773",
+        "dob": "1985-10-02 00:00:00.000",
+        "gender": 0,
+        "phoneNumber": "1234567890",
+        "state": "FL",
+        "paymentInformation": {
+          "primaryInsuranceId": 1000023151,
+          "uninsured": false,
+          "primaryMemberId": "abc123"
+        }
+      },
+      "clinicId": 89534,
+      "date": "2025-10-02T12:30:00Z",
+      "providerId": 0,
+      "visitType": "Well"
+    },
+    "testScenarios": {
+      "validPatients": [
+        {
+          "firstName": "John",
+          "lastName": "Doe_123456",
+          "dob": "1990-05-15 00:00:00.000",
+          "gender": 1,
+          "phoneNumber": "5551234567",
+          "state": "CA",
+          "paymentInformation": {
+            "primaryInsuranceId": 1000023152,
+            "uninsured": false,
+            "primaryMemberId": "def456"
+          }
+        },
+        {
+          "firstName": "Jane",
+          "lastName": "Smith_789012",
+          "dob": "1988-12-03 00:00:00.000",
+          "gender": 0,
+          "phoneNumber": "5559876543",
+          "state": "NY",
+          "paymentInformation": {
+            "primaryInsuranceId": 1000023153,
+            "uninsured": false,
+            "primaryMemberId": "ghi789"
+          }
+        }
+      ],
+      "invalidPatients": [
+        {
+          "firstName": "",
+          "lastName": "TestPatient",
+          "dob": "1990-01-01 00:00:00.000",
+          "gender": 1,
+          "phoneNumber": "5551234567",
+          "state": "CA",
+          "paymentInformation": {
+            "primaryInsuranceId": 1000023154,
+            "uninsured": false,
+            "primaryMemberId": "jkl012"
+          },
+          "expectedError": "firstName is required"
+        },
+        {
+          "firstName": "Test",
+          "lastName": "",
+          "dob": "1990-01-01 00:00:00.000",
+          "gender": 1,
+          "phoneNumber": "5551234567",
+          "state": "CA",
+          "paymentInformation": {
+            "primaryInsuranceId": 1000023155,
+            "uninsured": false,
+            "primaryMemberId": "mno345"
+          },
+          "expectedError": "lastName is required"
+        },
+        {
+          "firstName": "Test",
+          "lastName": "Patient",
+          "dob": "invalid-date",
+          "gender": 1,
+          "phoneNumber": "5551234567",
+          "state": "CA",
+          "paymentInformation": {
+            "primaryInsuranceId": 1000023156,
+            "uninsured": false,
+            "primaryMemberId": "pqr678"
+          },
+          "expectedError": "Invalid date format"
+        },
+        {
+          "firstName": "Test",
+          "lastName": "Patient",
+          "dob": "1990-01-01 00:00:00.000",
+          "gender": 1,
+          "phoneNumber": "123",
+          "state": "CA",
+          "paymentInformation": {
+            "primaryInsuranceId": 1000023157,
+            "uninsured": false,
+            "primaryMemberId": "stu901"
+          },
+          "expectedError": "Invalid phone number format"
+        }
+      ],
+      "visitTypes": [
+        "Well",
+        "Sick",
+        "Follow-up",
+        "Consultation",
+        "Emergency"
+      ],
+      "states": [
+        "FL", "CA", "NY", "TX", "IL", "PA", "OH", "GA", "NC", "MI"
+      ],
+      "genderCodes": {
+        "0": "Female",
+        "1": "Male",
+        "2": "Other",
+        "3": "Prefer not to say"
+      }
+    },
+    "apiEndpoints": {
+      "baseUrl": "https://vhapistg.vaxcare.com",
+      "createAppointment": "/api/patients/appointment",
+      "getAppointment": "/api/patients/appointment/{appointmentId}",
+      "updateAppointment": "/api/patients/appointment/{appointmentId}",
+      "cancelAppointment": "/api/patients/appointment/{appointmentId}/cancel"
+    },
+    "clinicIds": [89534, 89535, 89536, 89537, 89538],
+    "providerIds": [0, 1, 2, 3, 4, 5],
+    "insuranceIds": [1000023151, 1000023152, 1000023153, 1000023154, 1000023155],
+    "testDates": [
+      "2025-10-02T12:30:00Z",
+      "2025-10-03T09:00:00Z",
+      "2025-10-04T14:15:00Z",
+      "2025-10-05T10:30:00Z",
+      "2025-10-06T16:45:00Z"
+    ],
+    "performanceTest": {
+      "concurrentRequests": 10,
+      "maxResponseTime": 5000,
+      "expectedSuccessRate": 0.95
+    },
+    "securityTest": {
+      "invalidTokens": [
+        "invalid-token-123",
+        "expired-token-456",
+        "malformed-token-789"
+      ],
+      "sensitiveFields": [
+        "firstName",
+        "lastName",
+        "dob",
+        "phoneNumber",
+        "primaryMemberId"
+      ]
+    }
+  }
+}

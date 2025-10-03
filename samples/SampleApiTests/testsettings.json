@@ -1,0 +1,65 @@
+{
+  "DefaultConfiguration": {
+    "BaseUrl": "https://jsonplaceholder.typicode.com",
+    "TimeoutSeconds": 30,
+    "DefaultHeaders": {
+      "Accept": "application/json",
+      "User-Agent": "ApiTestFramework-Sample/1.0"
+    },
+    "Retry": {
+      "MaxRetries": 2,
+      "DelayMilliseconds": 500,
+      "ExponentialBackoff": true,
+      "RetryOnStatusCodes": [429, 500, 502, 503, 504]
+    },
+    "Logging": {
+      "LogRequests": true,
+      "LogResponses": true,
+      "LogHeaders": false,
+      "LogBody": true,
+      "LogLevel": "Information"
+    }
+  },
+  "Environments": {
+    "Development": {
+      "BaseUrl": "https://vhapistg.vaxcare.com",
+      "TimeoutSeconds": 60,
+      "DefaultHeaders": {
+        "Accept": "application/json",
+        "User-Agent": "ApiTestFramework-Sample/1.0-dev"
+      },
+      "Authentication": {
+        "Type": "Bearer",
+        "BearerToken": "YOUR_BEARER_TOKEN_HERE"
+      },
+      "Logging": {
+        "LogRequests": true,
+        "LogResponses": true,
+        "LogHeaders": true,
+        "LogBody": true,
+        "LogLevel": "Debug"
+      }
+    },
+    "MockApi": {
+      "BaseUrl": "https://reqres.in",
+      "TimeoutSeconds": 30,
+      "DefaultHeaders": {
+        "Accept": "application/json",
+        "User-Agent": "ApiTestFramework-Sample/1.0"
+      },
+      "Authentication": {
+        "Type": "ApiKey",
+        "ApiKey": "mock-valid-key-12345",
+        "ApiKeyHeader": "x-api-key"
+      },
+      "Logging": {
+        "LogRequests": true,
+        "LogResponses": true,
+        "LogHeaders": false,
+        "LogBody": true,
+        "LogLevel": "Information"
+      }
+    }
+  }
+}
+
