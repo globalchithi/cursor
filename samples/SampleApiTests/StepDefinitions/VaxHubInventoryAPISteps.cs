@@ -15,6 +15,9 @@ public class VaxHubInventoryAPISteps : SpecFlowTestBase
     private Dictionary<string, string> _customHeaders = null!;
     private Dictionary<string, string> _vaxHubHeaders = null!;
 
+    // Inherit logger from base class
+    protected ILogger Logger => base.Logger;
+
     [Given(@"I have proxy configured for ""(.*)"" on port (\d+)")]
     public void GivenIHaveProxyConfiguredForOnPort(string host, int port)
     {
@@ -139,8 +142,14 @@ public class VaxHubInventoryAPISteps : SpecFlowTestBase
             Environment = Configuration.Environment
         };
 
-        // Create a properly typed logger for ApiClient using NullLogger
-        var apiClientLogger = Microsoft.Extensions.Logging.Abstractions.NullLogger<ApiClient>.Instance;
+        // Create a properly typed logger for ApiClient using the inherited logger
+        var loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole();
+            builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
+        });
+
+        var apiClientLogger = loggerFactory.CreateLogger<ApiClient>();
 
         return new ApiClient(customConfig, apiClientLogger);
     }

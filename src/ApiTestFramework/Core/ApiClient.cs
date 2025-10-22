@@ -23,7 +23,7 @@ public class ApiClient : IApiClient
     public ApiClient(TestConfiguration configuration, ILogger<ApiClient> logger)
     {
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _logger = logger ?? CreateFallbackLogger();
         _defaultHeaders = new Dictionary<string, string>(configuration.DefaultHeaders);
 
         var handler = CreateHttpClientHandler();
@@ -286,6 +286,17 @@ public class ApiClient : IApiClient
     {
         _defaultHeaders.Remove(name);
         _httpClient.DefaultRequestHeaders.Remove(name);
+    }
+
+    private ILogger<ApiClient> CreateFallbackLogger()
+    {
+        var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole();
+            builder.SetMinimumLevel(LogLevel.Warning);
+        });
+
+        return loggerFactory.CreateLogger<ApiClient>();
     }
 
     private HttpClientHandler CreateHttpClientHandler()
