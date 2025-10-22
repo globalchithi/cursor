@@ -5,11 +5,15 @@
 #   -ProxyHost <string>    : Proxy host (default: localhost)
 #   -ProxyPort <int>       : Proxy port (default: 8888)
 #   -UseEnvProxy           : Use proxy settings from environment variables API_TEST_PROXY_HOST and API_TEST_PROXY_PORT
+#   -Endpoint <string>     : API endpoint (default: /api/patients/appointment)
+#   -Method <string>       : HTTP method (default: POST)
 
 param(
     [string]$ProxyHost,
     [int]$ProxyPort = 8888,
-    [switch]$UseEnvProxy
+    [switch]$UseEnvProxy,
+    [string]$Endpoint = "/api/patients/appointment",
+    [string]$Method = "POST"
 )
 
 # Create JSON without BOM
@@ -74,20 +78,36 @@ if ($UseEnvProxy -and $env:API_TEST_PROXY_HOST) {
     $proxyPort = $ProxyPort.ToString()
 }
 
-$curlArgs = @(
-    "--insecure",
-    "https://vhapistg.vaxcare.com/api/patients/appointment",
-    "-X", "POST",
+$baseUrl = "https://vhapistg.vaxcare.com"
+$fullUrl = "$baseUrl$Endpoint"
+
+# Default headers for patient appointment
+$defaultHeaders = @(
     "-H", "X-VaxHub-Identifier: eyJhbmRyb2lkU2RrIjoyOSwiYW5kcm9pZFZlcnNpb24iOiIxMCIsImFzc2V0VGFnIjotMSwiY2xpbmljSWQiOjg5NTM0LCJkZXZpY2VTZXJpYWxOdW1iZXIiOiJOT19QRVJNSVNTSU9OIiwicGFydG5lcklkIjoxNzg3NjQsInVzZXJJZCI6MTAwMTg2ODk0LCJ1c2VyTmFtZSI6ICJxYXJvYm90QHZheGNhcmUuY29tIiwidmVyc2lvbiI6MTQsInZlcnNpb25OYW1lIjoiMy4wLjAtMC1TVEciLCJtb2RlbFR5cGUiOiJNb2JpbGVIdWIifQ==",
     "-H", "MobileData: false",
     "-H", "UserSessionId: 04abd063-1b1f-490d-be30-765d1801891b",
     "-H", "MessageSource: VaxMobile",
     "-H", "Host: vhapistg.vaxcare.com",
     "-H", "Connection: Keep-Alive",
-    "-H", "User-Agent: okhttp/4.12.0",
-    "-H", "Content-Type: application/json; charset=UTF-8",
-    "--data", "@appointment.json"
+    "-H", "User-Agent: okhttp/4.12.0"
 )
+
+$curlArgs = @(
+    "--insecure",
+    $fullUrl,
+    "-X", $Method
+)
+
+# Add default headers
+$curlArgs += $defaultHeaders
+
+# Add content type and data for POST requests
+if ($Method -eq "POST") {
+    $curlArgs += @(
+        "-H", "Content-Type: application/json; charset=UTF-8",
+        "--data", "@appointment.json"
+    )
+}
 
 # Add proxy configuration if enabled
 if ($useProxy) {
