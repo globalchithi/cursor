@@ -67,8 +67,7 @@ public class VaxHubPatientAppointmentSteps : SpecFlowTestBase
             ["MessageSource"] = "VaxMobile",
             ["Host"] = "vhapistg.vaxcare.com",
             ["Connection"] = "Keep-Alive",
-            ["User-Agent"] = "okhttp/4.12.0",
-            ["Content-Type"] = "application/json; charset=UTF-8"
+            ["User-Agent"] = "okhttp/4.12.0"
         };
         
         LogInfo("VaxHub mobile headers configured");
@@ -80,14 +79,12 @@ public class VaxHubPatientAppointmentSteps : SpecFlowTestBase
         _vaxHubHeaders = new Dictionary<string, string>
         {
             ["X-VaxHub-Identifier"] = "invalid-token-12345",
-            ["traceparent"] = "00-3140053e06f8472dbe84f9feafcdb447-55674bbd17d441fe-01",
             ["MobileData"] = "false",
             ["UserSessionId"] = "04abd063-1b1f-490d-be30-765d1801891b",
             ["MessageSource"] = "VaxMobile",
             ["Host"] = "vhapistg.vaxcare.com",
             ["Connection"] = "Keep-Alive",
-            ["User-Agent"] = "okhttp/4.12.0",
-            ["Content-Type"] = "application/json; charset=UTF-8"
+            ["User-Agent"] = "okhttp/4.12.0"
         };
         
         LogInfo("Invalid VaxHub mobile headers configured");
