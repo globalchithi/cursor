@@ -1,4 +1,6 @@
 using System.Net;
+using System.IO;
+using System.Text.RegularExpressions;
 using ApiTestFramework.Core;
 using ApiTestFramework.Models;
 using FluentAssertions;
@@ -15,6 +17,7 @@ public class VaxHubPatientAppointmentSteps : SpecFlowTestBase
     private ApiResponse<VaxHubPatientAppointmentResponse> _apiResponse = null!;
     private Table _patientData = null!;
     private string _endpoint = null!;
+    private string _jsonFilePath = null!;
     private TimeSpan _responseTime;
     private Dictionary<string, string> _vaxHubHeaders = null!;
 
@@ -223,8 +226,156 @@ public class VaxHubPatientAppointmentSteps : SpecFlowTestBase
     public void ThenTheResponseShouldContainAnAuthenticationErrorMessage()
     {
         _apiResponse.Data.Should().NotBeNull("response should contain error data");
-        
+
         LogInfo("Authentication error message verified");
+    }
+
+    [Given(@"I have patient appointment JSON data with unique lastName:")]
+    public void GivenIHavePatientAppointmentJsonDataWithUniqueLastName(Table table)
+    {
+        _patientData = table;
+
+        // Create the base JSON structure from the PowerShell script
+        var jsonContent = @"{
+  ""newPatient"": {
+    ""firstName"": ""Test"",
+    ""lastName"": ""Patient00989"",
+    ""dob"": ""1990-07-07 00:00:00.000"",
+    ""gender"": 0,
+    ""phoneNumber"": ""5555555555"",
+    ""paymentInformation"": {
+      ""primaryInsuranceId"": 12,
+      ""paymentMode"": ""InsurancePay"",
+      ""primaryMemberId"": """",
+      ""primaryGroupId"": """",
+      ""relationshipToInsured"": ""Self"",
+      ""insuranceName"": ""Cigna"",
+      ""mbi"": """",
+      ""stock"": ""Private""
+    },
+    ""SSN"": """"
+  },
+  ""clinicId"": 10808,
+  ""date"": ""2025-10-16T20:00:00Z"",
+  ""providerId"": 100001877,
+  ""initialPaymentMode"": ""InsurancePay"",
+  ""visitType"": ""Well""
+}";
+
+        // Generate unique lastName with timestamp
+        var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+        var randomSuffix = new Random().Next(1000, 9999);
+        var uniqueLastName = $"Patient_{timestamp}_{randomSuffix}";
+
+        // Update JSON with unique lastName and any values from table
+        var jsonObject = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(jsonContent);
+        var jsonObjectString = jsonObject.GetRawText();
+
+        // Replace the lastName in JSON
+        jsonObjectString = jsonObjectString.Replace("\"lastName\": \"Patient00989\"", $"\"lastName\": \"{uniqueLastName}\"");
+
+        // Apply any values from the table
+        if (table != null)
+        {
+            foreach (var row in table.Rows)
+            {
+                var field = row["Field"];
+                var value = row["Value"];
+
+                jsonObjectString = UpdateJsonField(jsonObjectString, field, value);
+            }
+        }
+
+        // Create temporary JSON file without BOM
+        _jsonFilePath = Path.GetTempFileName() + ".json";
+        System.IO.File.WriteAllText(_jsonFilePath, jsonObjectString, new System.Text.UTF8Encoding(false));
+
+        LogInfo("Created JSON file at {0} with unique lastName: {1}", _jsonFilePath, uniqueLastName);
+    }
+
+    [When(@"I send a POST request to ""(.*)"" using the JSON file")]
+    public async Task WhenISendAPostRequestToUsingTheJsonFile(string endpoint)
+    {
+        var startTime = DateTime.UtcNow;
+
+        try
+        {
+            // Create a custom API client with VaxHub headers
+            var customApiClient = CreateApiClientWithVaxHubHeaders();
+
+            // Use the JSON file for the request
+            _apiResponse = await customApiClient.PostAsyncWithFile<VaxHubPatientAppointmentResponse>(endpoint, _jsonFilePath);
+            _responseTime = DateTime.UtcNow - startTime;
+
+            LogInfo("POST request sent to {0} using JSON file {1}", endpoint, _jsonFilePath);
+            LogInfo("Response Status: {0}", _apiResponse.StatusCode);
+            LogInfo("Response Time: {0}ms", _responseTime.TotalMilliseconds);
+        }
+        catch (Exception ex)
+        {
+            _responseTime = DateTime.UtcNow - startTime;
+            LogError("POST request failed: {0}", ex.Message);
+            throw;
+        }
+    }
+
+    [AfterScenario("@cleanup-json-file")]
+    public void AfterScenarioCleanupJsonFile()
+    {
+        if (!string.IsNullOrEmpty(_jsonFilePath) && File.Exists(_jsonFilePath))
+        {
+            File.Delete(_jsonFilePath);
+            LogInfo("Cleaned up JSON file: {0}", _jsonFilePath);
+            _jsonFilePath = null!;
+        }
+    }
+
+    // Helper method to update JSON field values
+    private string UpdateJsonField(string jsonString, string fieldName, string fieldValue)
+    {
+        var fieldMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "firstName", "\"firstName\"" },
+            { "lastName", "\"lastName\"" },
+            { "dob", "\"dob\"" },
+            { "gender", "\"gender\"" },
+            { "phoneNumber", "\"phoneNumber\"" },
+            { "primaryInsuranceId", "\"primaryInsuranceId\"" },
+            { "paymentMode", "\"paymentMode\"" },
+            { "primaryMemberId", "\"primaryMemberId\"" },
+            { "primaryGroupId", "\"primaryGroupId\"" },
+            { "relationshipToInsured", "\"relationshipToInsured\"" },
+            { "insuranceName", "\"insuranceName\"" },
+            { "mbi", "\"mbi\"" },
+            { "stock", "\"stock\"" },
+            { "SSN", "\"SSN\"" },
+            { "clinicId", "\"clinicId\"" },
+            { "date", "\"date\"" },
+            { "providerId", "\"providerId\"" },
+            { "initialPaymentMode", "\"initialPaymentMode\"" },
+            { "visitType", "\"visitType\"" }
+        };
+
+        if (fieldMappings.TryGetValue(fieldName, out var jsonKey))
+        {
+            // Find and replace the field in JSON
+            var pattern = $"{jsonKey}:\\s*\"[^\"]*\"";
+            var replacement = $"{jsonKey}: \"{fieldValue}\"";
+
+            // Handle numeric fields
+            if (fieldName.Equals("gender", StringComparison.OrdinalIgnoreCase) ||
+                fieldName.Equals("primaryInsuranceId", StringComparison.OrdinalIgnoreCase) ||
+                fieldName.Equals("clinicId", StringComparison.OrdinalIgnoreCase) ||
+                fieldName.Equals("providerId", StringComparison.OrdinalIgnoreCase))
+            {
+                pattern = $"{jsonKey}:\\s*\\d+";
+                replacement = $"{jsonKey}: {fieldValue}";
+            }
+
+            return System.Text.RegularExpressions.Regex.Replace(jsonString, pattern, replacement);
+        }
+
+        return jsonString;
     }
 
     // Helper methods

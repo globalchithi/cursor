@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
@@ -53,6 +54,11 @@ public class ApiClient : IApiClient
     public async Task<ApiResponse<T>> PostAsync<T>(string endpoint, object? body = null, Dictionary<string, string>? headers = null, CancellationToken cancellationToken = default)
     {
         return await SendAsync<T>(HttpMethod.Post, endpoint, body, headers, cancellationToken);
+    }
+
+    public async Task<ApiResponse<T>> PostAsyncWithFile<T>(string endpoint, string filePath, Dictionary<string, string>? headers = null, CancellationToken cancellationToken = default)
+    {
+        return await SendAsyncWithFile<T>(HttpMethod.Post, endpoint, filePath, headers, cancellationToken);
     }
 
     public async Task<ApiResponse<T>> PutAsync<T>(string endpoint, object? body = null, Dictionary<string, string>? headers = null, CancellationToken cancellationToken = default)
@@ -123,6 +129,82 @@ public class ApiClient : IApiClient
                     _logger.LogWarning(ex, "Request failed with exception. Retrying in {Delay}ms (attempt {RetryCount}/{MaxRetries})", 
                         delay, retryCount, maxRetries);
                     
+                    await Task.Delay(delay, cancellationToken);
+                    stopwatch.Restart();
+                    continue;
+                }
+
+                _logger.LogError(ex, "Request failed after {MaxRetries} retries", maxRetries);
+                return new ApiResponse<T>
+                {
+                    StatusCode = HttpStatusCode.InternalServerError,
+                    Exception = ex,
+                    ResponseTime = stopwatch.Elapsed
+                };
+            }
+        }
+
+        // This should never be reached, but just in case
+        return new ApiResponse<T>
+        {
+            StatusCode = HttpStatusCode.InternalServerError,
+            ResponseTime = stopwatch.Elapsed
+        };
+    }
+
+    public async Task<ApiResponse<T>> SendAsyncWithFile<T>(HttpMethod method, string endpoint, string filePath, Dictionary<string, string>? headers = null, CancellationToken cancellationToken = default)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var retryCount = 0;
+        var maxRetries = _configuration.Retry.MaxRetries;
+
+        while (retryCount <= maxRetries)
+        {
+            try
+            {
+                using var request = CreateHttpRequestMessageWithFile(method, endpoint, filePath, headers);
+
+                if (_configuration.Logging.LogRequests)
+                {
+                    LogRequestWithFile(request, filePath);
+                }
+
+                using var response = await _httpClient.SendAsync(request, cancellationToken);
+                stopwatch.Stop();
+
+                var apiResponse = await CreateApiResponse<T>(response, stopwatch.Elapsed);
+
+                if (_configuration.Logging.LogResponses)
+                {
+                    LogResponse(apiResponse);
+                }
+
+                // Check if we should retry
+                if (ShouldRetry<T>(apiResponse, retryCount, maxRetries))
+                {
+                    retryCount++;
+                    var delay = CalculateRetryDelay(retryCount);
+                    _logger.LogWarning("Request failed with status {StatusCode}. Retrying in {Delay}ms (attempt {RetryCount}/{MaxRetries})",
+                        apiResponse.StatusCode, delay, retryCount, maxRetries);
+
+                    await Task.Delay(delay, cancellationToken);
+                    stopwatch.Restart();
+                    continue;
+                }
+
+                return apiResponse;
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+
+                if (retryCount < maxRetries)
+                {
+                    retryCount++;
+                    var delay = CalculateRetryDelay(retryCount);
+                    _logger.LogWarning(ex, "Request failed with exception. Retrying in {Delay}ms (attempt {RetryCount}/{MaxRetries})",
+                        delay, retryCount, maxRetries);
+
                     await Task.Delay(delay, cancellationToken);
                     stopwatch.Restart();
                     continue;
@@ -224,6 +306,29 @@ public class ApiClient : IApiClient
         {
             var json = JsonConvert.SerializeObject(body, Formatting.None);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+        }
+
+        return request;
+    }
+
+    private HttpRequestMessage CreateHttpRequestMessageWithFile(HttpMethod method, string endpoint, string filePath, Dictionary<string, string>? headers)
+    {
+        var request = new HttpRequestMessage(method, endpoint);
+
+        // Add custom headers
+        if (headers != null)
+        {
+            foreach (var header in headers)
+            {
+                request.Headers.Add(header.Key, header.Value);
+            }
+        }
+
+        // Add file content if present
+        if (File.Exists(filePath) && (method == HttpMethod.Post || method == HttpMethod.Put || method == HttpMethod.Patch))
+        {
+            var fileContent = File.ReadAllText(filePath);
+            request.Content = new StringContent(fileContent, Encoding.UTF8, "application/json");
         }
 
         return request;
@@ -335,6 +440,31 @@ public class ApiClient : IApiClient
         if (_configuration.Logging.LogBody && body != null)
         {
             logMessage.AppendLine($"Body: {JsonConvert.SerializeObject(body, Formatting.Indented)}");
+        }
+
+        _logger.LogInformation(logMessage.ToString());
+    }
+
+    private void LogRequestWithFile(HttpRequestMessage request, string filePath)
+    {
+        var logMessage = new StringBuilder();
+        logMessage.AppendLine($"=== REQUEST ===");
+        logMessage.AppendLine($"{request.Method} {request.RequestUri}");
+        logMessage.AppendLine($"File: {filePath}");
+
+        if (_configuration.Logging.LogHeaders && request.Headers.Any())
+        {
+            logMessage.AppendLine("Headers:");
+            foreach (var header in request.Headers)
+            {
+                logMessage.AppendLine($"  {header.Key}: {string.Join(", ", header.Value)}");
+            }
+        }
+
+        if (_configuration.Logging.LogBody && File.Exists(filePath))
+        {
+            var fileContent = File.ReadAllText(filePath);
+            logMessage.AppendLine($"Body: {fileContent}");
         }
 
         _logger.LogInformation(logMessage.ToString());
