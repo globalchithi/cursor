@@ -321,6 +321,10 @@ public class VaxHubPatientAppointmentSteps : SpecFlowTestBase
             Environment = Configuration.Environment
         };
 
-        return new ApiClient(customConfig, Logger);
+        // Create a properly typed logger for ApiClient
+        var loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory();
+        var apiClientLogger = loggerFactory.CreateLogger<ApiClient>();
+        
+        return new ApiClient(customConfig, apiClientLogger);
     }
 }
