@@ -67,7 +67,8 @@ public class VaxHubPatientAppointmentSteps : SpecFlowTestBase
             ["MessageSource"] = "VaxMobile",
             ["Host"] = "vhapistg.vaxcare.com",
             ["Connection"] = "Keep-Alive",
-            ["User-Agent"] = "okhttp/4.12.0"
+            ["User-Agent"] = "okhttp/4.12.0",
+            ["Content-Type"] = "application/json; charset=UTF-8"
         };
         
         LogInfo("VaxHub mobile headers configured");
@@ -84,7 +85,8 @@ public class VaxHubPatientAppointmentSteps : SpecFlowTestBase
             ["MessageSource"] = "VaxMobile",
             ["Host"] = "vhapistg.vaxcare.com",
             ["Connection"] = "Keep-Alive",
-            ["User-Agent"] = "okhttp/4.12.0"
+            ["User-Agent"] = "okhttp/4.12.0",
+            ["Content-Type"] = "application/json; charset=UTF-8"
         };
         
         LogInfo("Invalid VaxHub mobile headers configured");
@@ -306,12 +308,16 @@ public class VaxHubPatientAppointmentSteps : SpecFlowTestBase
 
     private IApiClient CreateApiClientWithVaxHubHeaders()
     {
+        // Filter out Content-Type from headers as it should be set on HttpContent
+        var filteredHeaders = new Dictionary<string, string>(_vaxHubHeaders);
+        filteredHeaders.Remove("Content-Type");
+        
         // Create a custom configuration with VaxHub headers
         var customConfig = new TestConfiguration
         {
             BaseUrl = Configuration.BaseUrl,
             TimeoutSeconds = Configuration.TimeoutSeconds,
-            DefaultHeaders = new Dictionary<string, string>(_vaxHubHeaders),
+            DefaultHeaders = filteredHeaders,
             Authentication = Configuration.Authentication,
             Retry = Configuration.Retry,
             Logging = Configuration.Logging,
