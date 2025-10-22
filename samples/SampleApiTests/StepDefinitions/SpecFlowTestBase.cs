@@ -4,6 +4,7 @@ using ApiTestFramework.Models;
 using ApiTestFramework.TestData;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using TechTalk.SpecFlow;
 
 namespace SampleApiTests.StepDefinitions;
@@ -80,7 +81,7 @@ public abstract class SpecFlowTestBase
     {
         services.AddLogging(builder =>
         {
-            builder.AddConsole();
+            builder.AddProvider(new SimpleConsoleLoggerProvider());
             builder.SetMinimumLevel(LogLevel.Information);
         });
 
@@ -169,6 +170,46 @@ internal class ConsoleLogger<T> : ILogger<T>
     {
         var message = formatter(state, exception);
         Console.WriteLine($"[{logLevel}] {message}");
+        if (exception != null)
+        {
+            Console.WriteLine($"Exception: {exception}");
+        }
+    }
+}
+
+/// <summary>
+/// Simple console logger provider for fallback logging
+/// </summary>
+internal class SimpleConsoleLoggerProvider : ILoggerProvider
+{
+    public ILogger CreateLogger(string categoryName)
+    {
+        return new SimpleConsoleLogger(categoryName);
+    }
+
+    public void Dispose() { }
+}
+
+/// <summary>
+/// Simple console logger implementation
+/// </summary>
+internal class SimpleConsoleLogger : ILogger
+{
+    private readonly string _categoryName;
+
+    public SimpleConsoleLogger(string categoryName)
+    {
+        _categoryName = categoryName;
+    }
+
+    public IDisposable BeginScope<TState>(TState state) => null!;
+
+    public bool IsEnabled(LogLevel logLevel) => true;
+
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+    {
+        var message = formatter(state, exception);
+        Console.WriteLine($"[{logLevel}] {_categoryName}: {message}");
         if (exception != null)
         {
             Console.WriteLine($"Exception: {exception}");
