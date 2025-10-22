@@ -464,12 +464,27 @@ public class ApiClient : IApiClient
         logMessage.AppendLine($"=== REQUEST ===");
         logMessage.AppendLine($"{request.Method} {request.RequestUri}");
 
-        if (_configuration.Logging.LogHeaders && request.Headers.Any())
+        if (_configuration.Logging.LogRequestHost)
+        {
+            logMessage.AppendLine($"Host: {request.RequestUri.Host}");
+        }
+
+        if (_configuration.Logging.LogHeaders)
         {
             logMessage.AppendLine("Headers:");
+            // Log request headers
             foreach (var header in request.Headers)
             {
                 logMessage.AppendLine($"  {header.Key}: {string.Join(", ", header.Value)}");
+            }
+
+            // Log content headers if present
+            if (request.Content?.Headers != null)
+            {
+                foreach (var header in request.Content.Headers)
+                {
+                    logMessage.AppendLine($"  {header.Key}: {string.Join(", ", header.Value)}");
+                }
             }
         }
 
@@ -488,12 +503,27 @@ public class ApiClient : IApiClient
         logMessage.AppendLine($"{request.Method} {request.RequestUri}");
         logMessage.AppendLine($"File: {filePath}");
 
-        if (_configuration.Logging.LogHeaders && request.Headers.Any())
+        if (_configuration.Logging.LogRequestHost)
+        {
+            logMessage.AppendLine($"Host: {request.RequestUri.Host}");
+        }
+
+        if (_configuration.Logging.LogHeaders)
         {
             logMessage.AppendLine("Headers:");
+            // Log request headers
             foreach (var header in request.Headers)
             {
                 logMessage.AppendLine($"  {header.Key}: {string.Join(", ", header.Value)}");
+            }
+
+            // Log content headers if present
+            if (request.Content?.Headers != null)
+            {
+                foreach (var header in request.Content.Headers)
+                {
+                    logMessage.AppendLine($"  {header.Key}: {string.Join(", ", header.Value)}");
+                }
             }
         }
 

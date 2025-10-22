@@ -182,6 +182,20 @@ public class ConfigurationManager
             }
         }
 
+        // Proxy configuration
+        var proxyHost = Environment.GetEnvironmentVariable($"{prefix}PROXY_HOST");
+        if (!string.IsNullOrEmpty(proxyHost))
+        {
+            config.Proxy = new ProxyConfig
+            {
+                Host = proxyHost,
+                Port = int.TryParse(Environment.GetEnvironmentVariable($"{prefix}PROXY_PORT"), out var port) ? port : 8888,
+                Username = Environment.GetEnvironmentVariable($"{prefix}PROXY_USERNAME"),
+                Password = Environment.GetEnvironmentVariable($"{prefix}PROXY_PASSWORD"),
+                BypassForLocal = bool.TryParse(Environment.GetEnvironmentVariable($"{prefix}PROXY_BYPASS_LOCAL"), out var bypass) ? bypass : true
+            };
+        }
+
         return config;
     }
 
@@ -359,13 +373,37 @@ public class TestConfigurationBuilder
     /// <param name="logResponses">Log responses</param>
     /// <param name="logHeaders">Log headers</param>
     /// <param name="logBody">Log body</param>
+    /// <param name="logRequestHost">Log request host</param>
     /// <returns>Builder instance</returns>
-    public TestConfigurationBuilder WithLogging(bool logRequests = true, bool logResponses = true, bool logHeaders = false, bool logBody = true)
+    public TestConfigurationBuilder WithLogging(bool logRequests = true, bool logResponses = true, bool logHeaders = false, bool logBody = true, bool logRequestHost = true)
     {
         _configuration.Logging.LogRequests = logRequests;
         _configuration.Logging.LogResponses = logResponses;
         _configuration.Logging.LogHeaders = logHeaders;
         _configuration.Logging.LogBody = logBody;
+        _configuration.Logging.LogRequestHost = logRequestHost;
+        return this;
+    }
+
+    /// <summary>
+    /// Configures proxy settings
+    /// </summary>
+    /// <param name="host">Proxy host</param>
+    /// <param name="port">Proxy port</param>
+    /// <param name="username">Proxy username (optional)</param>
+    /// <param name="password">Proxy password (optional)</param>
+    /// <param name="bypassForLocal">Bypass proxy for local addresses</param>
+    /// <returns>Builder instance</returns>
+    public TestConfigurationBuilder WithProxy(string host, int port, string? username = null, string? password = null, bool bypassForLocal = true)
+    {
+        _configuration.Proxy = new ProxyConfig
+        {
+            Host = host,
+            Port = port,
+            Username = username,
+            Password = password,
+            BypassForLocal = bypassForLocal
+        };
         return this;
     }
 

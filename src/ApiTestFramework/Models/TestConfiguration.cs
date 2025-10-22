@@ -68,6 +68,7 @@ public class LoggingConfig
     public bool LogResponses { get; set; } = true;
     public bool LogHeaders { get; set; } = false;
     public bool LogBody { get; set; } = true;
+    public bool LogRequestHost { get; set; } = true;
     public string LogLevel { get; set; } = "Information";
     public string? LogFilePath { get; set; }
 }
