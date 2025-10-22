@@ -18,8 +18,8 @@ public class VaxHubPatientAppointmentSteps : SpecFlowTestBase
     private TimeSpan _responseTime;
     private Dictionary<string, string> _vaxHubHeaders = null!;
 
-    [Given(@"the API base URL is ""(.*)""")]
-    public async Task GivenTheApiBaseUrlIs(string baseUrl)
+    [Given(@"the VaxHub API base URL is ""(.*)""")]
+    public async Task GivenTheVaxHubApiBaseUrlIs(string baseUrl)
     {
         await InitializeFramework();
         
@@ -49,8 +49,8 @@ public class VaxHubPatientAppointmentSteps : SpecFlowTestBase
         LogInfo("API Base URL: {0}", baseUrl);
     }
 
-    [Given(@"the API endpoint is ""(.*)""")]
-    public void GivenTheApiEndpointIs(string endpoint)
+    [Given(@"the VaxHub API endpoint is ""(.*)""")]
+    public void GivenTheVaxHubApiEndpointIs(string endpoint)
     {
         _endpoint = endpoint;
         LogInfo("API Endpoint: {0}", endpoint);
@@ -145,8 +145,8 @@ public class VaxHubPatientAppointmentSteps : SpecFlowTestBase
         }
     }
 
-    [Then(@"the response status should be (\d+) (.+)")]
-    public void ThenTheResponseStatusShouldBe(int expectedStatusCode, string expectedStatusName)
+    [Then(@"the VaxHub response status should be (\d+) (.+)")]
+    public void ThenTheVaxHubResponseStatusShouldBe(int expectedStatusCode, string expectedStatusName)
     {
         var expectedHttpStatusCode = (HttpStatusCode)expectedStatusCode;
         _apiResponse.StatusCode.Should().Be(expectedHttpStatusCode, 
@@ -155,8 +155,8 @@ public class VaxHubPatientAppointmentSteps : SpecFlowTestBase
         LogInfo("Response status verified: {0} {1}", expectedStatusCode, expectedStatusName);
     }
 
-    [Then(@"the response time should be less than (\d+) seconds")]
-    public void ThenTheResponseTimeShouldBeLessThanSeconds(int maxSeconds)
+    [Then(@"the VaxHub response time should be less than (\d+) seconds")]
+    public void ThenTheVaxHubResponseTimeShouldBeLessThanSeconds(int maxSeconds)
     {
         var maxTimeSpan = TimeSpan.FromSeconds(maxSeconds);
         _responseTime.Should().BeLessThan(maxTimeSpan, 
@@ -321,9 +321,8 @@ public class VaxHubPatientAppointmentSteps : SpecFlowTestBase
             Environment = Configuration.Environment
         };
 
-        // Create a properly typed logger for ApiClient
-        var loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory();
-        var apiClientLogger = loggerFactory.CreateLogger<ApiClient>();
+        // Create a properly typed logger for ApiClient using NullLogger
+        var apiClientLogger = Microsoft.Extensions.Logging.Abstractions.NullLogger<ApiClient>.Instance;
         
         return new ApiClient(customConfig, apiClientLogger);
     }

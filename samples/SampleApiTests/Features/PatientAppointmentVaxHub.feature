@@ -6,8 +6,8 @@ Feature: Patient Appointment Management API with VaxHub Headers
 
   @vaxhub @success
   Scenario: Create a new patient appointment with VaxHub mobile headers
-    Given the API base URL is "https://vhapistg.vaxcare.com"
-    And the API endpoint is "/api/patients/appointment"
+    Given the VaxHub API base URL is "https://vhapistg.vaxcare.com"
+    And the VaxHub API endpoint is "/api/patients/appointment"
     And I have VaxHub mobile headers configured
     And I have valid patient appointment data with VaxHub format and unique lastName:
       | Field                    | Value                   |
@@ -31,8 +31,8 @@ Feature: Patient Appointment Management API with VaxHub Headers
       | initialPaymentMode      | InsurancePay            |
       | visitType               | Well                    |
     When I send a POST request to "/api/patients/appointment" with the VaxHub patient appointment data
-    Then the response status should be 201 Created
-    And the response time should be less than 5 seconds
+    Then the VaxHub response status should be 201 Created
+    And the VaxHub response time should be less than 5 seconds
     And the response should contain "Content-Type" header with "application/json"
     And the response should contain the created patient appointment data
     And the patient should have a valid appointment ID
@@ -41,8 +41,8 @@ Feature: Patient Appointment Management API with VaxHub Headers
 
   @vaxhub @validation
   Scenario: Create patient appointment with VaxHub headers - validate response structure
-    Given the API base URL is "https://vhapistg.vaxcare.com"
-    And the API endpoint is "/api/patients/appointment"
+    Given the VaxHub API base URL is "https://vhapistg.vaxcare.com"
+    And the VaxHub API endpoint is "/api/patients/appointment"
     And I have VaxHub mobile headers configured
     And I have valid patient appointment data with VaxHub format and unique lastName:
       | Field                    | Value                   |
@@ -66,14 +66,14 @@ Feature: Patient Appointment Management API with VaxHub Headers
       | initialPaymentMode      | InsurancePay            |
       | visitType               | Checkup                 |
     When I send a POST request to "/api/patients/appointment" with the VaxHub patient appointment data
-    Then the response status should be 201 Created
-    And the response time should be less than 3 seconds
+    Then the VaxHub response status should be 201 Created
+    And the VaxHub response time should be less than 3 seconds
     And the appointment should be successfully created
 
   @vaxhub @error-handling
   Scenario: Create patient appointment with invalid VaxHub identifier
-    Given the API base URL is "https://vhapistg.vaxcare.com"
-    And the API endpoint is "/api/patients/appointment"
+    Given the VaxHub API base URL is "https://vhapistg.vaxcare.com"
+    And the VaxHub API endpoint is "/api/patients/appointment"
     And I have invalid VaxHub mobile headers configured
     And I have valid patient appointment data with VaxHub format and unique lastName:
       | Field                    | Value                   |
@@ -97,5 +97,5 @@ Feature: Patient Appointment Management API with VaxHub Headers
       | initialPaymentMode      | InsurancePay            |
       | visitType               | Consultation            |
     When I send a POST request to "/api/patients/appointment" with the VaxHub patient appointment data
-    Then the response status should be 401 Unauthorized
+    Then the VaxHub response status should be 401 Unauthorized
     And the response should contain an authentication error message
