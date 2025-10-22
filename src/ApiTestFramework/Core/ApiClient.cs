@@ -26,7 +26,7 @@ public class ApiClient : IApiClient
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _defaultHeaders = new Dictionary<string, string>(configuration.DefaultHeaders);
 
-        var handler = new HttpClientHandler();
+        var handler = CreateHttpClientHandler();
         _httpClient = new HttpClient(handler)
         {
             BaseAddress = new Uri(configuration.BaseUrl),
@@ -286,6 +286,42 @@ public class ApiClient : IApiClient
     {
         _defaultHeaders.Remove(name);
         _httpClient.DefaultRequestHeaders.Remove(name);
+    }
+
+    private HttpClientHandler CreateHttpClientHandler()
+    {
+        var handler = new HttpClientHandler();
+
+        // Configure proxy if specified
+        if (_configuration.Proxy != null && !string.IsNullOrEmpty(_configuration.Proxy.Host))
+        {
+            var proxy = new WebProxy($"{_configuration.Proxy.Host}:{_configuration.Proxy.Port}");
+
+            // Set proxy credentials if provided
+            if (!string.IsNullOrEmpty(_configuration.Proxy.Username) && !string.IsNullOrEmpty(_configuration.Proxy.Password))
+            {
+                proxy.Credentials = new NetworkCredential(_configuration.Proxy.Username, _configuration.Proxy.Password);
+            }
+
+            // Configure bypass for local addresses if specified
+            if (_configuration.Proxy.BypassForLocal)
+            {
+                handler.UseProxy = true;
+                handler.Proxy = proxy;
+            }
+            else
+            {
+                handler.Proxy = proxy;
+            }
+
+            _logger.LogInformation("Using proxy: {ProxyHost}:{ProxyPort}", _configuration.Proxy.Host, _configuration.Proxy.Port);
+        }
+        else
+        {
+            handler.UseProxy = false;
+        }
+
+        return handler;
     }
 
     private HttpRequestMessage CreateHttpRequestMessage(HttpMethod method, string endpoint, object? body, Dictionary<string, string>? headers)

@@ -11,6 +11,7 @@ public class TestConfiguration
     public AuthenticationConfig? Authentication { get; set; }
     public RetryConfig Retry { get; set; } = new();
     public LoggingConfig Logging { get; set; } = new();
+    public ProxyConfig? Proxy { get; set; }
     public string Environment { get; set; } = "Development";
 }
 
@@ -69,6 +70,18 @@ public class LoggingConfig
     public bool LogBody { get; set; } = true;
     public string LogLevel { get; set; } = "Information";
     public string? LogFilePath { get; set; }
+}
+
+/// <summary>
+/// Proxy configuration
+/// </summary>
+public class ProxyConfig
+{
+    public string Host { get; set; } = string.Empty;
+    public int Port { get; set; } = 8888;
+    public string? Username { get; set; }
+    public string? Password { get; set; }
+    public bool BypassForLocal { get; set; } = true;
 }
 
 /// <summary>
