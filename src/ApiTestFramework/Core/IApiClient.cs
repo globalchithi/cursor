@@ -27,6 +27,16 @@ public interface IApiClient : IDisposable
     Task<ApiResponse<T>> PostAsync<T>(string endpoint, object? body = null, Dictionary<string, string>? headers = null, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Performs a POST request with file content
+    /// </summary>
+    /// <param name="endpoint">API endpoint</param>
+    /// <param name="filePath">Path to the file containing the request body</param>
+    /// <param name="headers">Additional headers</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>API response</returns>
+    Task<ApiResponse<T>> PostAsyncWithFile<T>(string endpoint, string filePath, Dictionary<string, string>? headers = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Performs a PUT request
     /// </summary>
     /// <param name="endpoint">API endpoint</param>

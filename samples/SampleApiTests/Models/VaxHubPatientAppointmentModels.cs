@@ -24,6 +24,26 @@ public class VaxHubPatientAppointmentRequest
 
     [JsonPropertyName("visitType")]
     public string VisitType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Creates a VaxHubPatientAppointmentRequest from the exact JSON structure provided in the PowerShell script
+    /// </summary>
+    public static VaxHubPatientAppointmentRequest FromJsonString(string jsonContent)
+    {
+        return System.Text.Json.JsonSerializer.Deserialize<VaxHubPatientAppointmentRequest>(jsonContent) ?? new();
+    }
+
+    /// <summary>
+    /// Converts the request object to JSON string with proper formatting
+    /// </summary>
+    public string ToJsonString()
+    {
+        return System.Text.Json.JsonSerializer.Serialize(this, new System.Text.Json.JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+        });
+    }
 }
 
 /// <summary>
