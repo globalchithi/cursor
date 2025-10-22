@@ -7,9 +7,9 @@ Feature: Patient Appointment Management API with VaxHub Headers
   @vaxhub @success
   Scenario: Create a new patient appointment with VaxHub mobile headers
     Given the API base URL is "https://vhapistg.vaxcare.com"
-    And the API endpoint is "/api/patients/appointments"
+    And the API endpoint is "/api/patients/appointment"
     And I have VaxHub mobile headers configured
-    And I have valid patient appointment data with VaxHub format:
+    And I have valid patient appointment data with VaxHub format and unique lastName:
       | Field                    | Value                   |
       | firstName               | Test                    |
       | lastName                | Patient00989           |
@@ -30,7 +30,7 @@ Feature: Patient Appointment Management API with VaxHub Headers
       | providerId              | 100001877              |
       | initialPaymentMode      | InsurancePay            |
       | visitType               | Well                    |
-    When I send a POST request to "/api/patients/appointments" with the VaxHub patient appointment data
+    When I send a POST request to "/api/patients/appointment" with the VaxHub patient appointment data
     Then the response status should be 201 Created
     And the response time should be less than 5 seconds
     And the response should contain "Content-Type" header with "application/json"
@@ -42,9 +42,9 @@ Feature: Patient Appointment Management API with VaxHub Headers
   @vaxhub @validation
   Scenario: Create patient appointment with VaxHub headers - validate response structure
     Given the API base URL is "https://vhapistg.vaxcare.com"
-    And the API endpoint is "/api/patients/appointments"
+    And the API endpoint is "/api/patients/appointment"
     And I have VaxHub mobile headers configured
-    And I have valid patient appointment data with VaxHub format:
+    And I have valid patient appointment data with VaxHub format and unique lastName:
       | Field                    | Value                   |
       | firstName               | Alice                   |
       | lastName                | Johnson                 |
@@ -65,7 +65,7 @@ Feature: Patient Appointment Management API with VaxHub Headers
       | providerId              | 100001878              |
       | initialPaymentMode      | InsurancePay            |
       | visitType               | Checkup                 |
-    When I send a POST request to "/api/patients/appointments" with the VaxHub patient appointment data
+    When I send a POST request to "/api/patients/appointment" with the VaxHub patient appointment data
     Then the response status should be 201 Created
     And the response time should be less than 3 seconds
     And the appointment should be successfully created
@@ -73,9 +73,9 @@ Feature: Patient Appointment Management API with VaxHub Headers
   @vaxhub @error-handling
   Scenario: Create patient appointment with invalid VaxHub identifier
     Given the API base URL is "https://vhapistg.vaxcare.com"
-    And the API endpoint is "/api/patients/appointments"
+    And the API endpoint is "/api/patients/appointment"
     And I have invalid VaxHub mobile headers configured
-    And I have valid patient appointment data with VaxHub format:
+    And I have valid patient appointment data with VaxHub format and unique lastName:
       | Field                    | Value                   |
       | firstName               | Bob                     |
       | lastName                | Wilson                  |
@@ -96,6 +96,6 @@ Feature: Patient Appointment Management API with VaxHub Headers
       | providerId              | 100001879              |
       | initialPaymentMode      | InsurancePay            |
       | visitType               | Consultation            |
-    When I send a POST request to "/api/patients/appointments" with the VaxHub patient appointment data
+    When I send a POST request to "/api/patients/appointment" with the VaxHub patient appointment data
     Then the response status should be 401 Unauthorized
     And the response should contain an authentication error message

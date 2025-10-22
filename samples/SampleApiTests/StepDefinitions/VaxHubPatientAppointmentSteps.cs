@@ -61,8 +61,7 @@ public class VaxHubPatientAppointmentSteps : SpecFlowTestBase
     {
         _vaxHubHeaders = new Dictionary<string, string>
         {
-            ["X-VaxHub-Identifier"] = "eyJhbmRyb2lkU2RrIjoyOSwiYW5kcm9pZFZlcnNpb24iOiIxMCIsImFzc2V0VGFnIjotMSwiY2xpbmljSWQiOjg5NTM0LCJkZXZpY2VTZXJpYWxOdW1iZXIiOiJOT19QRVJNSVNTSU9OIiwicGFydG5lcklkIjoxNzg3NjQsInVzZXJJZCI6MTAwMTk2NjAwLCJ1c2VyTmFtZSI6ICJrRHJ1bWhlbGxlckB2YXhjYXJlLmNvbSIsInZlcnNpb24iOjE0LCJ2ZXJzaW9uTmFtZSI6IjMuMC4wLTAtU1RHIiwibW9kZWxUeXBlIjoiTW9iaWxlSHViIn0",
-            ["traceparent"] = "00-3140053e06f8472dbe84f9feafcdb447-55674bbd17d441fe-01",
+            ["X-VaxHub-Identifier"] = "eyJhbmRyb2lkU2RrIjoyOSwiYW5kcm9pZFZlcnNpb24iOiIxMCIsImFzc2V0VGFnIjotMSwiY2xpbmljSWQiOjg5NTM0LCJkZXZpY2VTZXJpYWxOdW1iZXIiOiJOT19QRVJNSVNTSU9OIiwicGFydG5lcklkIjoxNzg3NjQsInVzZXJJZCI6MTAwMTg2ODk0LCJ1c2VyTmFtZSI6ICJxYXJvYm90QHZheGNhcmUuY29tIiwidmVyc2lvbiI6MTQsInZlcnNpb25OYW1lIjoiMy4wLjAtMC1TVEciLCJtb2RlbFR5cGUiOiJNb2JpbGVIdWIifQ==",
             ["MobileData"] = "false",
             ["UserSessionId"] = "04abd063-1b1f-490d-be30-765d1801891b",
             ["MessageSource"] = "VaxMobile",
@@ -101,6 +100,22 @@ public class VaxHubPatientAppointmentSteps : SpecFlowTestBase
         _vaxHubRequest = CreateVaxHubPatientAppointmentRequestFromTable(table);
         
         LogInfo("Created valid VaxHub patient appointment request for {0} {1}", 
+            _vaxHubRequest.NewPatient.FirstName, 
+            _vaxHubRequest.NewPatient.LastName);
+    }
+
+    [Given(@"I have valid patient appointment data with VaxHub format and unique lastName:")]
+    public void GivenIHaveValidPatientAppointmentDataWithVaxHubFormatAndUniqueLastName(Table table)
+    {
+        _patientData = table;
+        _vaxHubRequest = CreateVaxHubPatientAppointmentRequestFromTable(table);
+        
+        // Generate unique lastName with timestamp
+        var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+        var randomSuffix = new Random().Next(1000, 9999);
+        _vaxHubRequest.NewPatient.LastName = $"Patient_{timestamp}_{randomSuffix}";
+        
+        LogInfo("Created valid VaxHub patient appointment request for {0} {1} with unique lastName", 
             _vaxHubRequest.NewPatient.FirstName, 
             _vaxHubRequest.NewPatient.LastName);
     }
