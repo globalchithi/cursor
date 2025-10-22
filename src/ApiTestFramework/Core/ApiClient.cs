@@ -290,11 +290,11 @@ public class ApiClient : IApiClient
 
     private ILogger<ApiClient> CreateFallbackLogger()
     {
-        var loggerFactory = LoggerFactory.Create(builder =>
-        {
-            builder.AddConsole();
-            builder.SetMinimumLevel(LogLevel.Warning);
-        });
+        // Create a simple logger factory with console logging
+        var loggerFactory = new LoggerFactory();
+
+        // Add a simple console logger that writes to stdout
+        loggerFactory.AddProvider(new SimpleConsoleLoggerProvider());
 
         return loggerFactory.CreateLogger<ApiClient>();
     }
@@ -577,6 +577,46 @@ public class ApiClient : IApiClient
         {
             _httpClient?.Dispose();
             _disposed = true;
+        }
+    }
+}
+
+/// <summary>
+/// Simple console logger provider for fallback logging
+/// </summary>
+internal class SimpleConsoleLoggerProvider : ILoggerProvider
+{
+    public ILogger CreateLogger(string categoryName)
+    {
+        return new SimpleConsoleLogger(categoryName);
+    }
+
+    public void Dispose() { }
+}
+
+/// <summary>
+/// Simple console logger implementation
+/// </summary>
+internal class SimpleConsoleLogger : ILogger
+{
+    private readonly string _categoryName;
+
+    public SimpleConsoleLogger(string categoryName)
+    {
+        _categoryName = categoryName;
+    }
+
+    public IDisposable BeginScope<TState>(TState state) => null!;
+
+    public bool IsEnabled(LogLevel logLevel) => true;
+
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+    {
+        var message = formatter(state, exception);
+        Console.WriteLine($"[{logLevel}] {_categoryName}: {message}");
+        if (exception != null)
+        {
+            Console.WriteLine($"Exception: {exception}");
         }
     }
 }

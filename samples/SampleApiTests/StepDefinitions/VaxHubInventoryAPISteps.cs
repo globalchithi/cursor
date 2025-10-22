@@ -3,6 +3,8 @@ using ApiTestFramework.Core;
 using ApiTestFramework.Models;
 using FluentAssertions;
 using TechTalk.SpecFlow;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 namespace SampleApiTests.StepDefinitions;
 
@@ -143,15 +145,52 @@ public class VaxHubInventoryAPISteps : SpecFlowTestBase
         };
 
         // Create a properly typed logger for ApiClient using the inherited logger
-        var loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
-        {
-            builder.AddConsole();
-            builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
-        });
+        var loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory();
+        loggerFactory.AddProvider(new SimpleConsoleLoggerProvider());
 
         var apiClientLogger = loggerFactory.CreateLogger<ApiClient>();
 
         return new ApiClient(customConfig, apiClientLogger);
+    }
+}
+
+/// <summary>
+/// Simple console logger provider for fallback logging
+/// </summary>
+internal class SimpleConsoleLoggerProvider : ILoggerProvider
+{
+    public ILogger CreateLogger(string categoryName)
+    {
+        return new SimpleConsoleLogger(categoryName);
+    }
+
+    public void Dispose() { }
+}
+
+/// <summary>
+/// Simple console logger implementation
+/// </summary>
+internal class SimpleConsoleLogger : ILogger
+{
+    private readonly string _categoryName;
+
+    public SimpleConsoleLogger(string categoryName)
+    {
+        _categoryName = categoryName;
+    }
+
+    public IDisposable BeginScope<TState>(TState state) => null!;
+
+    public bool IsEnabled(LogLevel logLevel) => true;
+
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+    {
+        var message = formatter(state, exception);
+        Console.WriteLine($"[{logLevel}] {_categoryName}: {message}");
+        if (exception != null)
+        {
+            Console.WriteLine($"Exception: {exception}");
+        }
     }
 }
 
