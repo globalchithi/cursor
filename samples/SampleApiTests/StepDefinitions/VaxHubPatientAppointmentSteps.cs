@@ -462,7 +462,7 @@ public class VaxHubPatientAppointmentSteps : SpecFlowTestBase
         // Filter out Content-Type from headers as it should be set on HttpContent
         var filteredHeaders = new Dictionary<string, string>(_vaxHubHeaders);
         filteredHeaders.Remove("Content-Type");
-        
+
         // Create a custom configuration with VaxHub headers
         var customConfig = new TestConfiguration
         {
@@ -475,9 +475,15 @@ public class VaxHubPatientAppointmentSteps : SpecFlowTestBase
             Environment = Configuration.Environment
         };
 
-        // Create a properly typed logger for ApiClient using NullLogger
-        var apiClientLogger = Microsoft.Extensions.Logging.Abstractions.NullLogger<ApiClient>.Instance;
-        
+        // Create a properly typed logger for ApiClient using the inherited logger
+        var loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole();
+            builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
+        });
+
+        var apiClientLogger = loggerFactory.CreateLogger<ApiClient>();
+
         return new ApiClient(customConfig, apiClientLogger);
     }
 }
