@@ -116,7 +116,8 @@ public abstract class ApiTestBase
         services.AddTransient<IApiClient>(provider =>
         {
             var configManager = provider.GetRequiredService<ConfigurationManager>();
-            var logger = provider.GetRequiredService<ILogger<ApiClient>>();
+            var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger<ApiClient>();
             var config = configManager.GetConfiguration(Environment);
             return new ApiClient(config, logger);
         });
