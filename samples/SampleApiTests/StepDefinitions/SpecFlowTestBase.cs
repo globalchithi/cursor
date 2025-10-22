@@ -103,10 +103,7 @@ public abstract class SpecFlowTestBase
     /// <param name="args">Message arguments</param>
     protected void LogInfo(string message, params object[] args)
     {
-        if (Logger != null)
-        {
-            Logger.LogInformation(message, args);
-        }
+        Logger.LogInformation(message, args);
         
         // Always output to console for SpecFlow tests
         if (args.Length > 0)
@@ -126,10 +123,7 @@ public abstract class SpecFlowTestBase
     /// <param name="args">Message arguments</param>
     protected void LogError(string message, params object[] args)
     {
-        if (Logger != null)
-        {
-            Logger.LogError(message, args);
-        }
+        Logger.LogError(message, args);
         
         // Always output to console for SpecFlow tests
         if (args.Length > 0)
